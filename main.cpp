@@ -16,11 +16,11 @@ int main() {
         clear_input_buffer();
 
         switch (choice) {
-        case 1: // вывод рейсов
+        case 1: // РІС‹РІРѕРґ СЂРµР№СЃРѕРІ
             db.print_flights();
             break;
 
-        case 2: { // добавление нового
+        case 2: { // РґРѕР±Р°РІР»РµРЅРёРµ РЅРѕРІРѕРіРѕ
             std::string flight_number, plane_name;
             std::string departure_time, arrival_time;
 
@@ -56,7 +56,7 @@ int main() {
             break;
         }
 
-        case 3: { // поиск рейса
+        case 3: { // РїРѕРёСЃРє СЂРµР№СЃР°
             int search_choice;
             while (1) {
                 print_search_menu();
@@ -73,7 +73,7 @@ int main() {
                 }
 
                 switch (search_choice) {
-                case 1: { // поиск по номеру рейса
+                case 1: { // РїРѕРёСЃРє РїРѕ РЅРѕРјРµСЂСѓ СЂРµР№СЃР°
                     std::string flight_number;
                     std::cout << "enter flight number: ";
                     std::getline(std::cin, flight_number);
@@ -87,7 +87,7 @@ int main() {
                     }
                     break;
                 }
-                case 2: { // поиск по названию самолета
+                case 2: { // РїРѕРёСЃРє РїРѕ РЅР°Р·РІР°РЅРёСЋ СЃР°РјРѕР»РµС‚Р°
                     std::string plane_name;
                     std::cout << "enter plane name (or part of name): ";
                     std::getline(std::cin, plane_name);
@@ -95,7 +95,7 @@ int main() {
                     db.find_flights_by_plane(plane_name);
                     break;
                 }
-                case 3: { // поиск по времени вылета
+                case 3: { // РїРѕРёСЃРє РїРѕ РІСЂРµРјРµРЅРё РІС‹Р»РµС‚Р°
                     std::string departure_time;
                     std::cout << "enter departure time (hh:mm): ";
                     std::getline(std::cin, departure_time);
@@ -108,7 +108,7 @@ int main() {
                     }
                     break;
                 }
-                case 4: { // поиск по времени посадки
+                case 4: { // РїРѕРёСЃРє РїРѕ РІСЂРµРјРµРЅРё РїРѕСЃР°РґРєРё
                     std::string arrival_time;
                     std::cout << "enter arrival time (hh:mm): ";
                     std::getline(std::cin, arrival_time);
@@ -132,7 +132,7 @@ int main() {
             break;
         }
 
-        case 4: { // удаление рейса
+        case 4: { // СѓРґР°Р»РµРЅРёРµ СЂРµР№СЃР°
             int id;
             std::cout << "enter id for removing: ";
             std::cin >> id;
@@ -141,7 +141,7 @@ int main() {
             break;
         }
 
-        case 5: { // редактирование рейса
+        case 5: { // СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ СЂРµР№СЃР°
             int id;
             std::string flight_number, plane_name;
             std::string departure_time, arrival_time;
@@ -150,7 +150,7 @@ int main() {
             std::cin >> id;
             clear_input_buffer();
 
-            // поиск по id
+            // РїРѕРёСЃРє РїРѕ id
             Flight* flight_to_edit = nullptr;
             for (int i = 0; i < db.get_count(); i++) {
                 Flight* f = db.get_flight_by_index(i);
@@ -209,11 +209,11 @@ int main() {
             break;
         }
 
-        case 6: // сохранение в файл
+        case 6: // СЃРѕС…СЂР°РЅРµРЅРёРµ РІ С„Р°Р№Р»
             db.save_to_file("flights.txt");
             break;
 
-        case 7: // выход
+        case 7: // РІС‹С…РѕРґ
             db.save_to_file("flights.txt");
             std::cout << "Goodbye!\n";
             return 0;
