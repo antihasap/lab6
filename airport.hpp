@@ -20,6 +20,8 @@ struct Flight {
 
     Flight(int id, const std::string& flight_num, const std::string& plane,
            const std::string& depart, const std::string& arrive);
+    void print_details() const;
+    void print_short() const;
 };
 
 // класс базы данных (односвязный список)
