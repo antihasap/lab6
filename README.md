@@ -6,6 +6,7 @@ make
 
 ./airport my_flights.txt
 '''
+
 2. manually
 ''' bash
 g++ -std=c++11 -Wall -Wextra main.cpp airport.cpp -o airport
