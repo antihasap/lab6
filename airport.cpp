@@ -1,9 +1,15 @@
-﻿#include "airport.hpp"
+#include "airport.hpp"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <cctype>
+#include <limits>
 
+// реализация Flight
 Flight::Flight(int id, const std::string& flight_num, const std::string& plane,
-    const std::string& depart, const std::string& arrive)
+               const std::string& depart, const std::string& arrive)
     : id(id), flight_number(flight_num), plane_name(plane),
-    departure_time(depart), arrival_time(arrive) {}
+      departure_time(depart), arrival_time(arrive), next(nullptr) {}
 
 void Flight::print_details() const {
     std::cout << "id: " << id << "\n";
@@ -15,33 +21,56 @@ void Flight::print_details() const {
 
 void Flight::print_short() const {
     std::cout << id << " " << flight_number << " " << plane_name
-        << " " << departure_time << " " << arrival_time << "\n";
+              << " " << departure_time << " " << arrival_time << "\n";
 }
 
-Airport::Airport() : next_id(1) {}
+// реализация Airport через связный список
+Airport::Airport() : head(nullptr), count(0), next_id(1) {}
+
+Airport::~Airport() {
+    Flight* current = head;
+    while (current != nullptr) {
+        Flight* temp = current;
+        current = current->next;
+        delete temp;
+    }
+}
 
 void Airport::add_flight(const std::string& flight_number, const std::string& plane_name,
-    const std::string& departure_time, const std::string& arrival_time) {
-    flights.push_back(Flight(next_id++, flight_number, plane_name, departure_time, arrival_time));
+                         const std::string& departure_time, const std::string& arrival_time) {
+    Flight* new_flight = new Flight(next_id++, flight_number, plane_name, departure_time, arrival_time);
+    if (head == nullptr) {
+        head = new_flight;
+    } else {
+        Flight* curr = head;
+        while (curr->next != nullptr) {
+            curr = curr->next;
+        }
+        curr->next = new_flight;
+    }
+    count++;
     std::cout << "flight '" << flight_number << "' added with id: " << next_id - 1 << "\n";
 }
 
 void Airport::print_flights() const {
-    if (flights.empty()) {
+    if (count == 0) {
         std::cout << "empty\n";
         return;
     }
-
-    for (const auto& flight : flights) {
-        flight.print_short();
+    Flight* curr = head;
+    while (curr != nullptr) {
+        curr->print_short();
+        curr = curr->next;
     }
 }
 
-Flight* Airport::find_flight_by_number(const std::string& flight_number) {
-    for (auto& flight : flights) {
-        if (flight.flight_number == flight_number) {
-            return &flight;
+Flight* Airport::find_flight_by_number(const std::string& flight_number) const {
+    Flight* curr = head;
+    while (curr != nullptr) {
+        if (curr->flight_number == flight_number) {
+            return curr;
         }
+        curr = curr->next;
     }
     return nullptr;
 }
@@ -49,15 +78,15 @@ Flight* Airport::find_flight_by_number(const std::string& flight_number) {
 void Airport::find_flights_by_plane(const std::string& plane_name) const {
     bool found = false;
     std::cout << "\nflights with plane '" << plane_name << "':\n";
-
-    for (const auto& flight : flights) {
-        if (flight.plane_name.find(plane_name) != std::string::npos) {
-            std::cout << flight.id << " " << flight.flight_number
-                << " " << flight.departure_time << " " << flight.arrival_time << "\n";
+    Flight* curr = head;
+    while (curr != nullptr) {
+        if (curr->plane_name.find(plane_name) != std::string::npos) {
+            std::cout << curr->id << " " << curr->flight_number
+                      << " " << curr->departure_time << " " << curr->arrival_time << "\n";
             found = true;
         }
+        curr = curr->next;
     }
-
     if (!found) {
         std::cout << "no flights found with plane: " << plane_name << "\n";
     }
@@ -66,15 +95,15 @@ void Airport::find_flights_by_plane(const std::string& plane_name) const {
 void Airport::find_flights_by_departure_time(const std::string& departure_time) const {
     bool found = false;
     std::cout << "\nflights departing at: " << departure_time << ":\n";
-
-    for (const auto& flight : flights) {
-        if (flight.departure_time == departure_time) {
-            std::cout << flight.id << "  " << flight.flight_number
-                << " " << flight.plane_name << " " << flight.arrival_time << "\n";
+    Flight* curr = head;
+    while (curr != nullptr) {
+        if (curr->departure_time == departure_time) {
+            std::cout << curr->id << " " << curr->flight_number
+                      << " " << curr->plane_name << " " << curr->arrival_time << "\n";
             found = true;
         }
+        curr = curr->next;
     }
-
     if (!found) {
         std::cout << "no flights found departing at: " << departure_time << "\n";
     }
@@ -83,53 +112,67 @@ void Airport::find_flights_by_departure_time(const std::string& departure_time) 
 void Airport::find_flights_by_arrival_time(const std::string& arrival_time) const {
     bool found = false;
     std::cout << "\nflights arriving at: " << arrival_time << "\n";
-
-    for (const auto& flight : flights) {
-        if (flight.arrival_time == arrival_time) {
-            std::cout << flight.id << " " << flight.flight_number
-                << " " << flight.plane_name << " " << flight.departure_time << "\n";
+    Flight* curr = head;
+    while (curr != nullptr) {
+        if (curr->arrival_time == arrival_time) {
+            std::cout << curr->id << " " << curr->flight_number
+                      << " " << curr->plane_name << " " << curr->departure_time << "\n";
             found = true;
         }
+        curr = curr->next;
     }
-
     if (!found) {
         std::cout << "no flights found arriving at: " << arrival_time << "\n";
     }
 }
 
 void Airport::delete_flight(int id) {
-    if (flights.empty()) {
+    if (head == nullptr) {
         std::cout << "empty\n";
         return;
     }
 
-    auto it = std::find_if(flights.begin(), flights.end(),
-        [id](const Flight& f) { return f.id == id; });
+    Flight* curr = head;
+    Flight* prev = nullptr;
 
-    if (it != flights.end()) {
-        flights.erase(it);
-        std::cout << "flight with id " << id << " deleted\n";
+    while (curr != nullptr && curr->id != id) {
+        prev = curr;
+        curr = curr->next;
     }
-    else {
-        std::cout << "flight with id: " << id << " not found\n";
-    }
-}
 
-void Airport::edit_flight(int id, const std::string& flight_number,
-    const std::string& plane_name, const std::string& departure_time,
-    const std::string& arrival_time) {
-    auto it = std::find_if(flights.begin(), flights.end(),
-        [id](const Flight& f) { return f.id == id; });
-
-    if (it == flights.end()) {
+    if (curr == nullptr) {
         std::cout << "flight with id: " << id << " not found\n";
         return;
     }
 
-    if (!flight_number.empty()) it->flight_number = flight_number;
-    if (!plane_name.empty()) it->plane_name = plane_name;
-    if (!departure_time.empty()) it->departure_time = departure_time;
-    if (!arrival_time.empty()) it->arrival_time = arrival_time;
+    if (prev == nullptr) {
+        // Удаляем голову
+        head = curr->next;
+    } else {
+        prev->next = curr->next;
+    }
+    delete curr;
+    count--;
+    std::cout << "flight with id " << id << " deleted\n";
+}
+
+void Airport::edit_flight(int id, const std::string& flight_number,
+                          const std::string& plane_name, const std::string& departure_time,
+                          const std::string& arrival_time) {
+    Flight* curr = head;
+    while (curr != nullptr && curr->id != id) {
+        curr = curr->next;
+    }
+
+    if (curr == nullptr) {
+        std::cout << "flight with id: " << id << " not found\n";
+        return;
+    }
+
+    if (!flight_number.empty()) curr->flight_number = flight_number;
+    if (!plane_name.empty()) curr->plane_name = plane_name;
+    if (!departure_time.empty()) curr->departure_time = departure_time;
+    if (!arrival_time.empty()) curr->arrival_time = arrival_time;
 
     std::cout << "flight with id " << id << " updated\n";
 }
@@ -137,17 +180,17 @@ void Airport::edit_flight(int id, const std::string& flight_number,
 void Airport::save_to_file(const std::string& filename) const {
     std::ofstream file(filename);
     if (!file) {
-        std::cout << "err: cannot open file\n";
+        std::cout << "err: cannot open file for writing\n";
         return;
     }
 
-    for (const auto& flight : flights) {
-        file << flight.id << "|" << flight.flight_number << "|"
-            << flight.plane_name << "|" << flight.departure_time << "|"
-            << flight.arrival_time << "\n";
+    Flight* curr = head;
+    while (curr != nullptr) {
+        file << curr->id << "|" << curr->flight_number << "|"
+             << curr->plane_name << "|" << curr->departure_time << "|"
+             << curr->arrival_time << "\n";
+        curr = curr->next;
     }
-
-    file.close();
     std::cout << "saved to " << filename << "\n";
 }
 
@@ -158,11 +201,16 @@ void Airport::load_from_file(const std::string& filename) {
         return;
     }
 
-    flights.clear();
+    while (head != nullptr) {
+        Flight* temp = head;
+        head = head->next;
+        delete temp;
+    }
+    count = 0;
     next_id = 1;
-    std::string line;
     int max_id = 0;
 
+    std::string line;
     while (std::getline(file, line)) {
         if (line.empty()) continue;
 
@@ -176,42 +224,46 @@ void Airport::load_from_file(const std::string& filename) {
 
         if (parts.size() == 5) {
             int id = std::stoi(parts[0]);
-            flights.push_back(Flight(id, parts[1], parts[2], parts[3], parts[4]));
+            Flight* new_flight = new Flight(id, parts[1], parts[2], parts[3], parts[4]);
+            if (head == nullptr) {
+                head = new_flight;
+            } else {
+                Flight* curr = head;
+                while (curr->next != nullptr) {
+                    curr = curr->next;
+                }
+                curr->next = new_flight;
+            }
+            count++;
             if (id > max_id) max_id = id;
         }
     }
-
     next_id = max_id + 1;
-    file.close();
-    std::cout << "loaded " << flights.size() << " flight(s) from " << filename << "\n";
+    std::cout << "loaded " << count << " flight(s) from " << filename << "\n";
 }
 
-Flight* Airport::get_flight_by_index(int index) {
-    if (index >= 0 && index < static_cast<int>(flights.size())) {
-        return &flights[index];
+Flight* Airport::get_flight_by_index(int index) const {
+    if (index < 0 || index >= count) {
+        return nullptr;
     }
-    return nullptr;
+    Flight* curr = head;
+    for (int i = 0; i < index; ++i) {
+        curr = curr->next;
+    }
+    return curr;
 }
 
 bool validate_time_format(const std::string& time) {
     if (time.length() != 5) return false;
     if (time[2] != ':') return false;
-
-    for (int i = 0; i < 5; i++) {
-        if (i != 2) {
-            if (!std::isdigit(static_cast<unsigned char>(time[i]))) {
-                return false;
-            }
+    for (int i = 0; i < 5; ++i) {
+        if (i != 2 && !std::isdigit(static_cast<unsigned char>(time[i]))) {
+            return false;
         }
     }
-
     int hour = (time[0] - '0') * 10 + (time[1] - '0');
     int minute = (time[3] - '0') * 10 + (time[4] - '0');
-
-    if (hour < 0 || hour > 23) return false;
-    if (minute < 0 || minute > 59) return false;
-
-    return true;
+    return (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59);
 }
 
 void clear_input_buffer() {
