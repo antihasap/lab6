@@ -1,9 +1,4 @@
 #include "airport.hpp"
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cctype>
-#include <limits>
 
 // реализация Flight
 Flight::Flight(int id, const std::string& flight_num, const std::string& plane,
