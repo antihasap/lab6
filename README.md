@@ -10,3 +10,5 @@ make
 2. manually
 
 g++ -std=c++11 -Wall -Wextra main.cpp airport.cpp -o airport
+
+./airport my_flights.txt
